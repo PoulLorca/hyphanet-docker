@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     expect \
     && rm -rf /var/lib/apt/lists/*
 
-ENV HYPHANET_VERSION=1501
+ARG HYPHANET_VERSION=1501
 ENV HYPHANET_INSTALLER_URL=https://www.draketo.de/dateien/freenet/build0${HYPHANET_VERSION}/new_installer_offline_${HYPHANET_VERSION}.jar
 ENV INSTALLER_JAR=new_installer_offline.jar
 ENV HYPHANET_HOME=/opt/hyphanet
