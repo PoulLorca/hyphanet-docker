@@ -2,12 +2,14 @@ FROM eclipse-temurin:21.0.7_6-jre-jammy AS builder
 
 RUN apt-get update && apt-get install -y --no-install-recommends \    
     wget \
+    curl \
     ca-certificates \
     unzip \
     expect \
+    dnsutils \
     && rm -rf /var/lib/apt/lists/*
 
-ARG HYPHANET_VERSION=1501
+ARG HYPHANET_VERSION=1503
 ENV HYPHANET_INSTALLER_URL=https://www.draketo.de/dateien/freenet/build0${HYPHANET_VERSION}/new_installer_offline_${HYPHANET_VERSION}.jar
 ENV INSTALLER_JAR=new_installer_offline.jar
 ENV HYPHANET_HOME=/opt/hyphanet
@@ -23,7 +25,14 @@ RUN mkdir -p ${HYPHANET_HOME} && chown ${INSTALL_UID}:${INSTALL_GID} ${HYPHANET_
 USER ${INSTALL_USER}
 WORKDIR /home/${INSTALL_USER}
 
-RUN wget --progress=bar:force:noscroll -O ${INSTALLER_JAR} "${HYPHANET_INSTALLER_URL}"
+# Test DNS resolution and try multiple download methods
+RUN echo "Testing DNS resolution..." && \
+    nslookup www.draketo.de || echo "nslookup failed, trying with dig..." && \
+    dig www.draketo.de || echo "dig failed, continuing..." && \
+    echo "Attempting download with wget..." && \
+    (wget --progress=bar:force:noscroll --tries=3 --timeout=30 --dns-timeout=10 -O ${INSTALLER_JAR} "${HYPHANET_INSTALLER_URL}" || \
+     echo "wget failed, trying with curl..." && \
+     curl -L --connect-timeout 30 --max-time 300 --retry 3 -o ${INSTALLER_JAR} "${HYPHANET_INSTALLER_URL}")
 
 COPY --chmod=755 <<'EOT' install_script.exp
 #!/usr/bin/expect -f
