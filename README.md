@@ -29,7 +29,7 @@ docker run -d \
   --name hyphanet \
   -p 8123:8123 \
   -v hyphanet_data:/data \
-  poullorca/hyphanet-node:latest
+  poullorca/hyphanet-node:v0.15.04
 ```
 
 ### Accessing Hyphanet
